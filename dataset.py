@@ -31,9 +31,11 @@ class ModelNet(data.Dataset):
             self.model_list = [x for x in self.model_list for cls in classes if cls in x ]
 
         if split == "train":
-            self.model_list = [x for x in self.model_list if int(x.split("_")[1]) >= 20]
+            self.model_list = [x for x in self.model_list if int(x.split("_")[1]) > 20]
         elif split == "val":
-            self.model_list = [x for x in self.model_list if int(x.split("_")[1]) < 20]
+            self.model_list = [x for x in self.model_list if int(x.split("_")[1]) <= 20]
+
+            print(self.model_list)
 
         random.shuffle(self.model_list)
         self.len = len(self.model_list * 50)
@@ -44,8 +46,9 @@ class ModelNet(data.Dataset):
         def read_pcd(filename):
             pcd = o3d.io.read_point_cloud(filename)
             return torch.from_numpy(np.array(pcd.points)).float()
-        partial = read_pcd(os.path.join(self.dataset_path, model_id,f'{scan_id}.pcd'))
-        full_name = model_id.split("_")[0] + "_" + self.split + "_" + model_id
+        partial = read_pcd(os.path.join(self.dataset_path, model_id, f'{scan_id}.pcd'))
+        split = "test" if self.split == "test" else "train"
+        full_name = model_id.split("_")[0] + "_" + split + "_" + model_id
         complete = read_pcd(os.path.join("./data/modelnet10/point_clouds/complete/", '%s.pcd' % full_name))
         return model_id, resample_pcd(partial, 5000), resample_pcd(complete, self.npoints)
 
