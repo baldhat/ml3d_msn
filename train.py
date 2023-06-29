@@ -67,11 +67,11 @@ if __name__ == '__main__':
     best_val_loss = 10
 
     # dataset = ShapeNet(train=True, npoints=opt.num_points)
-    dataset = ModelNet(split="train", npoints=opt.num_points, classes=["dresser"])
+    dataset = ModelNet(split="train", npoints=opt.num_points, classes=["bed", "bathtub", "toilet", "monitor", "sofa"])
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize,
                                               shuffle=True, num_workers=int(opt.workers))
     # dataset_test = ShapeNet(train=False, npoints=opt.num_points)
-    dataset_val = ModelNet(split="val", npoints=opt.num_points, classes=["dresser"])
+    dataset_val = ModelNet(split="val", npoints=opt.num_points, classes=["bed", "bathtub", "toilet", "monitor", "sofa"])
     dataloader_test = torch.utils.data.DataLoader(dataset_val, batch_size=opt.batchSize,
                                                   shuffle=False, num_workers=int(opt.workers))
 
@@ -108,6 +108,7 @@ if __name__ == '__main__':
         #TRAIN MODE
         train_loss.reset()
         network.module.model.train()
+        torch.save(network.module.model.state_dict(), '%s/network%d.pth' % (dir_name, epoch))
 
         # learning rate schedule
         if epoch==20:
