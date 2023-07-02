@@ -8,9 +8,10 @@ def read_pcd(filename):
 
 
 # pc = read_pcd("./data/complete/04256520_a92f6b7dccd0421f7248d9dbed7a7b8.pcd")
-pc = read_pcd("./data/modelnet10/point_clouds/complete/bed_train_bed_0468.pcd")
-points = np.asarray(pc.points)
-print(points.shape)
-print(np.max(points))
-print(np.min(points))
-o3d.visualization.draw_geometries([pc])
+pc1 = read_pcd("./data/modelnet10/point_clouds/test/pcd/bathtub_0109/1.pcd")
+pc2 = read_pcd("./data/modelnet10/point_clouds_noisy/test/pcd/bathtub_0109/1.pcd")
+points1 = np.asarray(pc1.points)
+points2 = np.asarray(pc2.points)
+
+o3d.visualization.draw_geometries([pc1])
+o3d.visualization.draw_geometries([pc2])
