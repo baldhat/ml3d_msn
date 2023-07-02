@@ -63,19 +63,21 @@ def depth2pcd(depth, intrinsics, pose):
     # camera coordinates -> world coordinates
     points = np.dot(pose, np.concatenate([points, np.ones((1, points.shape[1]))], 0)).T[:, :3]
     # Add outliers
-    outliers = np.random.uniform(-0.95, 0.95, size=(NUM_OUTLIERS, 3))
+    outliers = np.random.uniform(-0.49, 0.49, size=(NUM_OUTLIERS, 3))
     points = np.concatenate((points, outliers))
     # Add gaussian noise
     points += np.random.normal(loc=0.0, scale=0.01 , size=points.shape)
     return points
 
-intrinsics = np.loadtxt(r"data/modelnet10/point_clouds/intrinsics.txt")
-input_dir = r"data/modelnet10/point_clouds"
+intrinsics = np.loadtxt(r"../data/modelnet10/point_clouds/intrinsics.txt")
+input_dir = r"../data/modelnet10/point_clouds"
 model_list = os.listdir(os.path.join(input_dir, 'exr'))
-output_dir = r"data/modelnet10/point_clouds_noisy"
+output_dir = r"../data/modelnet10/point_clouds_noisy"
 width = int(intrinsics[0, 2] * 2)
 height = int(intrinsics[1, 2] * 2)
 def calc_pcd(filename):
+    if len(filename.split("_")) != 4:
+        return
     cls, split, _, id = filename.split("_")
     # print(filename, split, cls, id)
     model_id = cls + "_" + id

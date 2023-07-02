@@ -15,13 +15,13 @@ def resample_pcd(pcd, n):
     return pcd[idx[:n]]
 
 class ModelNet(data.Dataset):
-    def __init__(self, split = "train", npoints = 8192, classes=[]):
+    def __init__(self, split = "train", noisy=False, npoints = 8192, classes=[]):
         assert split in ["train", "test", "val"]
         self.split = split
         if split == "train" or split == "val":
-            self.dataset_path = './data/modelnet10/point_clouds/train/pcd'
+            self.dataset_path = f'./data/modelnet10/point_clouds{"_noisy" if noisy else ""}/train/pcd'
         elif split == "test":
-            self.dataset_path = './data/modelnet10/point_clouds/test/pcd'
+            self.dataset_path = f'./data/modelnet10/point_clouds{"_noisy" if noisy else ""}/test/pcd'
 
         self.npoints = npoints
         self.train = split == "train"
