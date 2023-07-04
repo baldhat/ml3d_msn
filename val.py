@@ -31,11 +31,11 @@ if opt.model != '':
     print("Previous weight loaded ")
 
 network.eval()
-with open(os.path.join('./data/val.list')) as file:
+with open(os.path.join('./data/shapenet_data/val.list')) as file:
     model_list = [line.strip().replace('/', '_') for line in file]
 
-partial_dir = "./data/val/"
-gt_dir = "./data/complete/" 
+partial_dir = "./data/shapenet_data/val/"
+gt_dir = "./data/shapenet_data/complete/" 
 vis = visdom.Visdom(port = 8097, env=opt.env) # set your port
 
 def resample_pcd(pcd, n):
