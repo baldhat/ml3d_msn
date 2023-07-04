@@ -69,21 +69,27 @@ class PointNetfeat(nn.Module):
         return x
     
 class PointNetfeat2(nn.Module):
-    def __init__(self, num_points = 8192, global_feat = True):
-        super(PointNetfeat, self).__init__()
-        super(get_model, self).__init__()
+    def __init__(self, num_points = 8192, normal_channel=True):
+        super(PointNetfeat2, self).__init__()
         in_channel = 3 if normal_channel else 0
         self.normal_channel = normal_channel
+        self.num_points = num_points
         self.sa1 = PointNetSetAbstractionMsg(512, [0.1, 0.2, 0.4], [16, 32, 128], in_channel,[[32, 32, 64], [64, 64, 128], [64, 96, 128]])
         self.sa2 = PointNetSetAbstractionMsg(128, [0.2, 0.4, 0.8], [32, 64, 128], 320,[[64, 64, 128], [128, 128, 256], [128, 128, 256]])
         self.sa3 = PointNetSetAbstraction(None, None, None, 640 + 3, [256, 512, 1024], True)
+        
     def forward(self, x):
-        batchsize = x.size()[0]
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = self.bn3(self.conv3(x))
-        x,_ = torch.max(x, 2)
-        x = x.view(-1, 1024)
+        B, _, _ = x.shape
+        xyz=x
+        if self.normal_channel:
+            norm = xyz[:, 3:, :]
+            xyz = xyz[:, :3, :]
+        else:
+            norm = None
+        l1_xyz, l1_points = self.sa1(xyz, norm)
+        l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
+        l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
+        x = l3_points.view(B, 1024)
         return x
 
 class PointGenCon(nn.Module):
@@ -153,7 +159,7 @@ class MSN(nn.Module):
         self.bottleneck_size = bottleneck_size
         self.n_primitives = n_primitives
         self.encoder = nn.Sequential(
-        PointNetfeat(num_points, global_feat=True),
+        PointNetfeat2(num_points, normal_channel=False),
         nn.Linear(1024, self.bottleneck_size),
         nn.BatchNorm1d(self.bottleneck_size),
         nn.ReLU()
