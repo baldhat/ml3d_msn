@@ -95,10 +95,10 @@ class PointNetfeat2(nn.Module):
         return x
     
 class PointConvfeat(nn.Module):
-    def __init__(self):
+    def __init__(self, normal_channel = False):
         super(PointConvfeat, self).__init__()
-        feature_dim = 3
-        self.normal_channel=False
+        feature_dim = 3 if normal_channel else 0
+        self.normal_channel=True
         self.sa1 = PointConvDensitySetAbstraction(npoint=512, nsample=32, in_channel=feature_dim + 3, mlp=[64, 64, 128], bandwidth = 0.1, group_all=False)
         self.sa2 = PointConvDensitySetAbstraction(npoint=128, nsample=64, in_channel=128 + 3, mlp=[128, 128, 256], bandwidth = 0.2, group_all=False)
         self.sa3 = PointConvDensitySetAbstraction(npoint=1, nsample=None, in_channel=256 + 3, mlp=[256, 512, 1024], bandwidth = 0.4, group_all=True)
