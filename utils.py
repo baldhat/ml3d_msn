@@ -5,12 +5,16 @@ import numpy as np
 #initialize the weighs of the network for Convolutional layers and batchnorm layers
 def weights_init(m):
     classname = m.__class__.__name__
-    if classname.find('Conv') != -1 and classname.find('Conv2d') == -1:
+    if classname == 'PointConvDensitySetAbstraction':
+        m.bn_linear.weight.data.normal_(1.0, 0.02)
+        m.bn_linear.bias.data.fill_(0)
+    elif classname == 'PointConvfeat':
+        pass
+    elif classname.find('Conv') != -1 and classname.find('Conv2d') == -1:
         m.weight.data.normal_(0.0, 0.02)
     elif classname.find('BatchNorm') != -1 and classname.find('BatchNorm2d') == -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
-
 class AverageValueMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self):

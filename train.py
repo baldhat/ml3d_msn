@@ -24,7 +24,7 @@ parser.add_argument('--model', type=str, default = '',  help='optional reload mo
 parser.add_argument('--num_points', type=int, default = 8192,  help='number of points')
 parser.add_argument('--n_primitives', type=int, default = 16,  help='number of surface elements')
 parser.add_argument('--env', type=str, default ="MSN_TRAIN"   ,  help='visdom environment')
-parser.add_argument('--encoder', type=int, default =1   ,  help='which feature encoder to use 1=pointnet 2=pointnet++ 3=kpcnn')
+parser.add_argument('--encoder', type=int, default =1   ,  help='which feature encoder to use 1=pointnet 2=pointnet++ 3=pointconv')
 
 
 opt = parser.parse_args()

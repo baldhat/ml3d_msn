@@ -12,6 +12,8 @@ import expansion_penalty_module as expansion
 sys.path.append("./MDS/")
 import MDS_module
 from pointnet2_utils import PointNetSetAbstractionMsg, PointNetSetAbstraction
+from point_conv_utils import PointConvDensitySetAbstraction
+
 
 
 class STN3d(nn.Module):
@@ -78,6 +80,29 @@ class PointNetfeat2(nn.Module):
         self.sa2 = PointNetSetAbstractionMsg(128, [0.2, 0.4, 0.8], [32, 64, 128], 320,[[64, 64, 128], [128, 128, 256], [128, 128, 256]])
         self.sa3 = PointNetSetAbstraction(None, None, None, 640 + 3, [256, 512, 1024], True)
         
+    def forward(self, x):
+        B, _, _ = x.shape
+        xyz=x
+        if self.normal_channel:
+            norm = xyz[:, 3:, :]
+            xyz = xyz[:, :3, :]
+        else:
+            norm = None
+        l1_xyz, l1_points = self.sa1(xyz, norm)
+        l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
+        l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
+        x = l3_points.view(B, 1024)
+        return x
+    
+class PointConvfeat(nn.Module):
+    def __init__(self):
+        super(PointConvfeat, self).__init__()
+        feature_dim = 3
+        self.normal_channel=False
+        self.sa1 = PointConvDensitySetAbstraction(npoint=512, nsample=32, in_channel=feature_dim + 3, mlp=[64, 64, 128], bandwidth = 0.1, group_all=False)
+        self.sa2 = PointConvDensitySetAbstraction(npoint=128, nsample=64, in_channel=128 + 3, mlp=[128, 128, 256], bandwidth = 0.2, group_all=False)
+        self.sa3 = PointConvDensitySetAbstraction(npoint=1, nsample=None, in_channel=256 + 3, mlp=[256, 512, 1024], bandwidth = 0.4, group_all=True)
+
     def forward(self, x):
         B, _, _ = x.shape
         xyz=x
@@ -162,6 +187,8 @@ class MSN(nn.Module):
             point_feat= PointNetfeat(num_points, global_feat=True)
         elif feature_extractor == 2:
             point_feat= PointNetfeat2(num_points, normal_channel=False)
+        elif feature_extractor == 3:
+            point_feat = PointConvfeat()
         else:
             raise NotImplementedError("this  point cloud feature extractor is not yet implemented")
         self.encoder = nn.Sequential(
