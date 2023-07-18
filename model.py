@@ -153,13 +153,19 @@ class PointNetRes(nn.Module):
         return x
 
 class MSN(nn.Module):
-    def __init__(self, num_points = 8192, bottleneck_size = 1024, n_primitives = 16):
+    def __init__(self, num_points = 8192, bottleneck_size = 1024, n_primitives = 16, feature_extractor= 1):
         super(MSN, self).__init__()
         self.num_points = num_points
         self.bottleneck_size = bottleneck_size
         self.n_primitives = n_primitives
+        if feature_extractor == 1:
+            point_feat= PointNetfeat(num_points, global_feat=True)
+        elif feature_extractor == 2:
+            point_feat= PointNetfeat2(num_points, normal_channel=False)
+        else:
+            raise NotImplementedError("this  point cloud feature extractor is not yet implemented")
         self.encoder = nn.Sequential(
-        PointNetfeat2(num_points, normal_channel=False),
+        point_feat,
         nn.Linear(1024, self.bottleneck_size),
         nn.BatchNorm1d(self.bottleneck_size),
         nn.ReLU()
