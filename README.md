@@ -30,6 +30,8 @@ Compile our extension modules:
     python3 setup.py install
     cd MDS
     python3 setup.py install
+    cd metrics/CD/chamfer3D
+    python3 setup.py install
 
 #### 3) Download data and trained models
 
@@ -43,6 +45,14 @@ Run `python3 val.py` to validate the model or `python3 train.py` to train the mo
 
 We provide an EMD implementation for point cloud comparison, which only needs $O(n)$ memory and thus enables dense point clouds  (with 10,000 points or over) and large batch size. It is based on an approximated algorithm (auction algorithm) and cannot guarantee a (but near) bijection assignment. It employs a parameter $\epsilon$ to balance the error rate and the speed of convergence. Smaller $\epsilon$ achieves more accurate results, but needs a longer time for convergence. The time complexity is $O(n^2k)$, where $k$ is the number of iterations. We set a $\epsilon = 0.005, k = 50$ during training and a $\epsilon = 0.002, k = 10000$ during testing. Please refer to`emd/README.md` for more details.
 
+### chamfer3D
+We provide also chamfer 3d implementation from 
+[Stanford course](http://graphics.stanford.edu/courses/cs468-17-spring/LectureSlides/L14%20-%203d%20deep%20learning%20on%20point%20cloud%20representation%20(analysis).pdf) on 3D deep Learning
+
+Include a **CUDA** version, and a **PYTHON** version with pytorch standard operations.
+NB : In this depo, dist1 and dist2 are squared pointcloud euclidean distances, so you should adapt thresholds accordingly.
+
+- [x] F - Score  
 ### Citation
 
 If you find our work useful for your research, please cite:
