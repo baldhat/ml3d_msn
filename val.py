@@ -17,7 +17,10 @@ parser.add_argument('--model', type=str, default = './trained_model/network.pth'
 parser.add_argument('--num_points', type=int, default = 8192,  help='number of points')
 parser.add_argument('--n_primitives', type=int, default = 16,  help='number of primitives in the atlas')
 parser.add_argument('--env', type=str, default ="MSN_VAL"   ,  help='visdom environment') 
-parser.add_argument('--loss', type=int, default ="Loss"   ,  help='1 = EMD, 2 = DCD') 
+parser.add_argument('--loss', type=int, default = 1  ,  help='1 = EMD, 2 = DCD,  3=CD') 
+parser.add_argument('--n_lambda', type=int, default = 200   ,  help='n lambda for dcd loss') 
+parser.add_argument('--t_alpha', type=float, default = 0.5   ,  help='t_alpha for dcd loss') 
+
 
 
 opt = parser.parse_args()
@@ -67,9 +70,9 @@ with torch.no_grad():
 
         output1, output2, expansion_penalty = network(partial.transpose(2,1).contiguous())
         if opt.loss == 1:
-            emd_dcd1, _, _ = calc_dcd(output1, gt, alpha=self.t_alpha, n_lambda=self.n_lambda)
+            emd_dcd1, _, _ = calc_dcd(output1, gt, alpha=opt.t_alpha, n_lambda=opt.n_lambda)
             emd_dcd1 = emd_dcd1.mean()
-            emd_dcd2, _, _ = calc_dcd(output2, gt, alpha=self.t_alpha, n_lambda=self.n_lambda)
+            emd_dcd2, _, _ = calc_dcd(output2, gt, alpha=opt.t_alpha, n_lambda=opt.n_lambda)
             emd_dcd2 = emd_dcd2.mean()
         elif opt.loss == 2 :
             dist, _ = EMD(output1, gt, 0.002, 10000)
