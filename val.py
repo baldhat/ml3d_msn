@@ -10,12 +10,15 @@ import os
 import visdom
 sys.path.append("./emd/")
 import emd_module as emd
+from model_utils import calc_dcd
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default = './trained_model/network.pth',  help='optional reload model path')
 parser.add_argument('--num_points', type=int, default = 8192,  help='number of points')
 parser.add_argument('--n_primitives', type=int, default = 16,  help='number of primitives in the atlas')
 parser.add_argument('--env', type=str, default ="MSN_VAL"   ,  help='visdom environment') 
+parser.add_argument('--loss', type=int, default ="Loss"   ,  help='1 = EMD, 2 = DCD') 
+
 
 opt = parser.parse_args()
 print (opt)
@@ -63,10 +66,18 @@ with torch.no_grad():
             gt[j, :, :] = torch.from_numpy(resample_pcd(np.array(pcd.points), opt.num_points))
 
         output1, output2, expansion_penalty = network(partial.transpose(2,1).contiguous())
-        dist, _ = EMD(output1, gt, 0.002, 10000)
-        emd1 = torch.sqrt(dist).mean()
-        dist, _ = EMD(output2, gt, 0.002, 10000)
-        emd2 = torch.sqrt(dist).mean()
+        if opt.loss == 1:
+            emd_dcd1, _, _ = calc_dcd(output1, gt, alpha=self.t_alpha, n_lambda=self.n_lambda)
+            emd_dcd1 = emd_dcd1.mean()
+            emd_dcd2, _, _ = calc_dcd(output2, gt, alpha=self.t_alpha, n_lambda=self.n_lambda)
+            emd_dcd2 = emd_dcd2.mean()
+        elif opt.loss == 2 :
+            dist, _ = EMD(output1, gt, 0.002, 10000)
+            emd_dcd1 = torch.sqrt(dist).mean()
+            dist, _ = EMD(output2, gt, 0.002, 10000)
+            emd_dcd2 = torch.sqrt(dist).mean()
+        else:
+            raise NotImplementedError("Not implemented yet")
         idx = random.randint(0, 49)
         vis.scatter(X = gt[idx].data.cpu(), win = 'GT',
                     opts = dict(title = model, markersize = 2))
@@ -79,4 +90,10 @@ with torch.no_grad():
         vis.scatter(X = output2[idx].data.cpu(),
                     win = 'OUTPUT',
                     opts = dict(title = model, markersize=2))
-        print(opt.env + ' val [%d/%d]  emd1: %f emd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd1.item(), emd2.item(), expansion_penalty.mean().item()))
+        # print(opt.env + ' val [%d/%d]  dcd1: %f dcd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd1.item(), emd2.item(), expansion_penalty.mean().item()))
+        if opt.loss ==1:
+            print(opt.env + '  val [%d/%d]  emd1: %f emd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd1.item(), emd_dcd2.item(), expansion_penalty.mean().item()))
+        elif opt.loss ==2:
+            print(opt.env + '  val [%d/%d]  dcd1: %f dcd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd1.item(), emd_dcd2.item(), expansion_penalty.mean().item()))
+        else:
+            raise NotImplementedError("Not implemented yet")
