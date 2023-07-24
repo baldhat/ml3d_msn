@@ -11,6 +11,8 @@ import visdom
 sys.path.append("./emd/")
 import emd_module as emd
 from model_utils import calc_dcd
+from model_utils import calc_cd
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default = './trained_model/network.pth',  help='optional reload model path')
@@ -70,15 +72,20 @@ with torch.no_grad():
 
         output1, output2, expansion_penalty = network(partial.transpose(2,1).contiguous())
         if opt.loss == 1:
-            emd_dcd1, _, _ = calc_dcd(output1, gt, alpha=opt.t_alpha, n_lambda=opt.n_lambda)
-            emd_dcd1 = emd_dcd1.mean()
-            emd_dcd2, _, _ = calc_dcd(output2, gt, alpha=opt.t_alpha, n_lambda=opt.n_lambda)
-            emd_dcd2 = emd_dcd2.mean()
+            emd_dcd_cd1, _, _ = calc_dcd(output1, gt, alpha=opt.t_alpha, n_lambda=opt.n_lambda)
+            emd_dcd_cd1 = emd_dcd_cd1.mean()
+            emd_dcd_cd2, _, _ = calc_dcd(output2, gt, alpha=opt.t_alpha, n_lambda=opt.n_lambda)
+            emd_dcd_cd2 = emd_dcd_cd2.mean()
         elif opt.loss == 2 :
             dist, _ = EMD(output1, gt, 0.002, 10000)
-            emd_dcd1 = torch.sqrt(dist).mean()
+            emd_dcd_cd1 = torch.sqrt(dist).mean()
             dist, _ = EMD(output2, gt, 0.002, 10000)
-            emd_dcd2 = torch.sqrt(dist).mean()
+            emd_dcd_cd2 = torch.sqrt(dist).mean()
+        elif opt.loss == 3:
+            _ , emd_dcd_cd1 = calc_cd(output1, gt)
+            emd_dcd_cd1 = emd_dcd_cd1.mean()
+            _, emd_dcd_cd2 = calc_dcd(output2, gt)
+            emd_dcd_cd2 = emd_dcd_cd2.mean()
         else:
             raise NotImplementedError("Not implemented yet")
         idx = random.randint(0, 49)
@@ -94,9 +101,11 @@ with torch.no_grad():
                     win = 'OUTPUT',
                     opts = dict(title = model, markersize=2))
         # print(opt.env + ' val [%d/%d]  dcd1: %f dcd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd1.item(), emd2.item(), expansion_penalty.mean().item()))
-        if opt.loss ==1:
-            print(opt.env + '  val [%d/%d]  emd1: %f emd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd1.item(), emd_dcd2.item(), expansion_penalty.mean().item()))
-        elif opt.loss ==2:
-            print(opt.env + '  val [%d/%d]  dcd1: %f dcd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd1.item(), emd_dcd2.item(), expansion_penalty.mean().item()))
+        if opt.loss == 1:
+            print(opt.env + '  val [%d/%d]  emd1: %f emd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd_cd1.item(), emd_dcd_cd2.item(), expansion_penalty.mean().item()))
+        elif opt.loss == 2:
+            print(opt.env + '  val [%d/%d]  dcd1: %f dcd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd_cd1.item(), emd_dcd_cd2.item(), expansion_penalty.mean().item()))
+        elif opt.loss == 3:
+            print(opt.env + '  val [%d/%d]  cd1: %f cd2: %f expansion_penalty: %f' %(i + 1, len(model_list), emd_dcd_cd1.item(), emd_dcd_cd2.item(), expansion_penalty.mean().item()))
         else:
             raise NotImplementedError("Not implemented yet")
