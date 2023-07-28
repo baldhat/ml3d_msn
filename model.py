@@ -71,7 +71,7 @@ class PointNetfeat(nn.Module):
         return x
     
 class PointNetfeat2(nn.Module):
-    def __init__(self, num_points = 8192, normal_channel=True):
+    def __init__(self, num_points = 8192, normal_channel=False):
         super(PointNetfeat2, self).__init__()
         in_channel = 3 if normal_channel else 0
         self.normal_channel = normal_channel
@@ -90,15 +90,15 @@ class PointNetfeat2(nn.Module):
             norm = None
         l1_xyz, l1_points = self.sa1(xyz, norm)
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
-        l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
+        _, l3_points = self.sa3(l2_xyz, l2_points)
         x = l3_points.view(B, 1024)
         return x
     
-class PointConvfeat(nn.Module):
+class PointConvfeat3(nn.Module):
     def __init__(self, normal_channel = False):
-        super(PointConvfeat, self).__init__()
+        super(PointConvfeat3, self).__init__()
         feature_dim = 3 if normal_channel else 0
-        self.normal_channel=True
+        self.normal_channel=normal_channel
         self.sa1 = PointConvDensitySetAbstraction(npoint=512, nsample=32, in_channel=feature_dim + 3, mlp=[64, 64, 128], bandwidth = 0.1, group_all=False)
         self.sa2 = PointConvDensitySetAbstraction(npoint=128, nsample=64, in_channel=128 + 3, mlp=[128, 128, 256], bandwidth = 0.2, group_all=False)
         self.sa3 = PointConvDensitySetAbstraction(npoint=1, nsample=None, in_channel=256 + 3, mlp=[256, 512, 1024], bandwidth = 0.4, group_all=True)
@@ -113,8 +113,22 @@ class PointConvfeat(nn.Module):
             norm = None
         l1_xyz, l1_points = self.sa1(xyz, norm)
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
-        l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
+        _, l3_points = self.sa3(l2_xyz, l2_points)
         x = l3_points.view(B, 1024)
+        return x
+class PointEncoderMix4(nn.Module):
+    def __init__(self, num_points = 8192, normal_channel=False):
+        super(PointEncoderMix4, self).__init__()
+        self.normal_channel = normal_channel
+        self.num_points = num_points
+        self.pointnet2_encoder = PointNetfeat2(self.num_points, normal_channel=self.normal_channel)
+        self.pointconv_encoder = PointConvfeat3()
+        self.mlp_fuse = nn.Linear(2048, 1024)
+    def forward(self, x):
+        x1 = self.pointnet2_encoder(x)
+        x2 = self.pointconv_encoder(x)
+        x = torch.cat((x1,x2), dim=1)
+        x = self.mlp_fuse(x)
         return x
 
 class PointGenCon(nn.Module):
@@ -188,7 +202,9 @@ class MSN(nn.Module):
         elif feature_extractor == 2:
             point_feat= PointNetfeat2(num_points, normal_channel=False)
         elif feature_extractor == 3:
-            point_feat = PointConvfeat()
+            point_feat = PointConvfeat3()
+        elif feature_extractor == 4:
+            point_feat = PointEncoderMix4(num_points,normal_channel=False)
         else:
             raise NotImplementedError("this  point cloud feature extractor is not yet implemented")
         self.encoder = nn.Sequential(

@@ -1,14 +1,16 @@
 import os
 import random
 import numpy as np
+from torch import nn
 
 #initialize the weighs of the network for Convolutional layers and batchnorm layers
 def weights_init(m):
     classname = m.__class__.__name__
-    if classname == 'PointConvDensitySetAbstraction':
-        m.bn_linear.weight.data.normal_(1.0, 0.02)
-        m.bn_linear.bias.data.fill_(0)
-    elif classname == 'PointConvfeat':
+    if classname == 'PointNetfeat2':
+        pass
+    elif classname in ['PointConvfeat3','PointConvDensitySetAbstraction']:
+        pass
+    elif classname == 'PointEncoderMix4':
         pass
     elif classname.find('Conv') != -1 and classname.find('Conv2d') == -1:
         m.weight.data.normal_(0.0, 0.02)
