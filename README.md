@@ -1,4 +1,6 @@
-![image](https://github.com/baldhat/ml3d_msn/assets/42282389/f9ea9852-36ad-4b9c-a645-27fd6fb8bf40)## MSN: Ablation Study On Morphing and Sampling Network for Dense Point Cloud Completion Paper
+## MSN: Ablation Study On Morphing and Sampling Network for Dense Point Cloud Completion Paper
+
+![image](https://github.com/baldhat/ml3d_msn/assets/42282389/f9ea9852-36ad-4b9c-a645-27fd6fb8bf40)
 
 [[paper]](http://cseweb.ucsd.edu/~mil070/projects/AAAI2020/paper.pdf) [[data]](https://drive.google.com/drive/folders/1X143kUwtRtoPFxNRvUk9LuPlsf1lLKI7?usp=sharing)
 
