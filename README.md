@@ -48,10 +48,7 @@ Data Processing with Perlin Noise, Gaussian Noise and Outlier. For Outliers, we 
 
 Encoder options include PointNet++, PointConv, PointTransformer, and FusedEncoder. Our architecture employs a fused design, integrating additional multi-layer perceptrons to merge features from PointConv and PointNet++.
 
-Original MSN paper adapts EMD as their loss function. However, using EMD as a loss function could be expensive since it enforces a one-to-one mapping between two point sets. Our architecture uses Density Aware Chamfer Distance (DCD) as a loss function for faster training while maintaining a good result. Furthermore, DCD provides a variant to deal with point sets with different numbers of points. Hence, we could potentially train a more dense point cloud completion. DCD takes a step from CD and attempts to provide a rationale bridge towards EMD for a better sense of point distribution rather than being blinded by its nearest neighbour. The details formular of DCD could be found in the following equation:
-$$
-d_{DCD}(S_1, S_2) = \frac{1}{2} \left( \frac{1}{\left|S_1\right|} \sum_{x \in S_1} \left( 1 - \frac{1}{n_{\hat{y}}} e^{-\alpha \|x - \hat{y}\|_2} \right) + \frac{1}{\left|S_2\right|} \sum_{y \in S_2} \left( 1 - \frac{1}{n_{\hat{x}}} e^{-\alpha \|y - \hat{x}\|_2} \right) \right)
-$$
+Original MSN paper adapts EMD as their loss function. However, using EMD as a loss function could be expensive since it enforces a one-to-one mapping between two point sets. Our architecture uses Density Aware Chamfer Distance (DCD) as a loss function for faster training while maintaining a good result. Furthermore, DCD provides a variant to deal with point sets with different numbers of points. Hence, we could potentially train a more dense point cloud completion. DCD takes a step from CD and attempts to provide a rationale bridge towards EMD for a better sense of point distribution rather than being blinded by its nearest neighbour.
 
 Include a **CUDA** version, and a **PYTHON** version with pytorch standard operations.
 NB : In this depo, dist1 and dist2 are squared pointcloud euclidean distances, so you should adapt thresholds accordingly.
