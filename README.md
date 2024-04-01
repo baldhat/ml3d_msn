@@ -1,4 +1,4 @@
-## MSN: Morphing and Sampling Network for Dense Point Cloud Completion
+![image](https://github.com/baldhat/ml3d_msn/assets/42282389/f9ea9852-36ad-4b9c-a645-27fd6fb8bf40)## MSN: Ablation Study On Morphing and Sampling Network for Dense Point Cloud Completion Paper
 
 [[paper]](http://cseweb.ucsd.edu/~mil070/projects/AAAI2020/paper.pdf) [[data]](https://drive.google.com/drive/folders/1X143kUwtRtoPFxNRvUk9LuPlsf1lLKI7?usp=sharing)
 
@@ -41,13 +41,15 @@ Download the data and trained models from [here](https://drive.google.com/drive/
 
 Run `python3 val.py` to validate the model or `python3 train.py` to train the model from scratch.
 
-### EMD
+#### 5) Ablation 
+Data Processing with Perlin Noise, Gaussian Noise and Outlier. For Outliers, we added 20 outliers to each point cloud. The outliers are uniformly sampled within the unit cube.
 
-We provide an EMD implementation for point cloud comparison, which only needs $O(n)$ memory and thus enables dense point clouds  (with 10,000 points or over) and large batch size. It is based on an approximated algorithm (auction algorithm) and cannot guarantee a (but near) bijection assignment. It employs a parameter $\epsilon$ to balance the error rate and the speed of convergence. Smaller $\epsilon$ achieves more accurate results, but needs a longer time for convergence. The time complexity is $O(n^2k)$, where $k$ is the number of iterations. We set a $\epsilon = 0.005, k = 50$ during training and a $\epsilon = 0.002, k = 10000$ during testing. Please refer to`emd/README.md` for more details.
+Encoder options include PointNet++, PointConv, PointTransformer, and FusedEncoder. Our architecture employs a fused design, integrating additional multi-layer perceptrons to merge features from PointConv and PointNet++.
 
-### chamfer3D
-We provide also chamfer 3d implementation from 
-[Stanford course](http://graphics.stanford.edu/courses/cs468-17-spring/LectureSlides/L14%20-%203d%20deep%20learning%20on%20point%20cloud%20representation%20(analysis).pdf) on 3D deep Learning
+Original MSN paper adapts EMD as their loss function. However, using EMD as a loss function could be expensive since it enforces a one-to-one mapping between two point sets. Our architecture uses Density Aware Chamfer Distance (DCD) as a loss function for faster training while maintaining a good result. Furthermore, DCD provides a variant to deal with point sets with different numbers of points. Hence, we could potentially train a more dense point cloud completion. DCD takes a step from CD and attempts to provide a rationale bridge towards EMD for a better sense of point distribution rather than being blinded by its nearest neighbour. The details formular of DCD could be found in the following equation:
+$$
+d_{DCD}(S_1, S_2) = \frac{1}{2} \left( \frac{1}{\left|S_1\right|} \sum_{x \in S_1} \left( 1 - \frac{1}{n_{\hat{y}}} e^{-\alpha \|x - \hat{y}\|_2} \right) + \frac{1}{\left|S_2\right|} \sum_{y \in S_2} \left( 1 - \frac{1}{n_{\hat{x}}} e^{-\alpha \|y - \hat{x}\|_2} \right) \right)
+$$
 
 Include a **CUDA** version, and a **PYTHON** version with pytorch standard operations.
 NB : In this depo, dist1 and dist2 are squared pointcloud euclidean distances, so you should adapt thresholds accordingly.
